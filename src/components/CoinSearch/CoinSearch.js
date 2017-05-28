@@ -2,21 +2,16 @@ import React, { Component } from 'react';
 import Select from 'react-select';
 import 'react-select/dist/react-select.css';
 
-const getOptions = (input) => {
-  return fetch(`https://api.coinmarketcap.com/v1/ticker/`)
-    .then((response) => {
-      return response.json();
-    }).then((json) => {
-      json.forEach(function(obj) {
-        var coinName = obj.id;
-        obj.value = obj.id;
-        obj.label = coinName.charAt(0).toUpperCase() + coinName.slice(1);
-      });
-      return  { options: json }  ;
-    });
-}
+import * as coinSearchActions from '../../actions/coinSearchActions';
+import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
 
 class CoinSearch extends Component {
+
+  componentWillMount() {
+    this.props.getOptions();
+  }
+
   render() {
     let coinPrice = this.props.coinPrice;
     let currentPrice = null;
@@ -29,7 +24,7 @@ class CoinSearch extends Component {
       <div>
         <Select.Async
           name="form-field-name"
-          loadOptions={getOptions}
+          loadOptions={this.props.options}
           onChange={this.props.handleCoinSelectionChange}
           value={this.props.coinSelected}
         />
@@ -39,4 +34,18 @@ class CoinSearch extends Component {
   }
 }
 
-export default CoinSearch;
+const mapStateToProps = ({ coinSearchReducers }) => {
+  const { options } = coinSearchReducers;
+
+  return {
+    options: options
+  };
+};
+
+const bundledActionCreators = Object.assign({}, coinSearchActions);
+
+const mapDispatchToProps = (dispatch) => {
+  return bindActionCreators(bundledActionCreators, dispatch);
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(CoinSearch);
